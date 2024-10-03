@@ -2,12 +2,11 @@ from flask import Flask, request, jsonify
 import openai
 from textblob import TextBlob
 import requests
-import os
 
 app = Flask(__name__)
 
-# Load OpenAI API key from environment variables
-openai.api_key = os.getenv('OPENAI_API_KEY')
+# Replace with your OpenAI API Key
+openai.api_key = 'OPENAI_API_KEY'
 
 INITIAL_PRICE = 100  # Starting price for negotiation
 MIN_PRICE = 50       # Minimum acceptable price
@@ -26,18 +25,17 @@ def generate_gpt_response(user_offer, current_price):
     You are a supplier negotiating a price with a customer. The initial price for the product is ${INITIAL_PRICE}. 
     The customer has offered ${user_offer}. Negotiate the price, respond with a counteroffer or accept/reject the offer.
     """
-    try:
-        response = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo",
-            messages=[
-                {"role": "system", "content": "You are a helpful assistant."},
-                {"role": "user", "content": prompt}
-            ],
-            max_tokens=100
-        )
-        return response['choices'][0]['message']['content'].strip()
-    except Exception as e:
-        return f"Error in generating response: {str(e)}"
+    
+    response = openai.ChatCompletion.create(
+        model="gpt-3.5-turbo",
+        messages=[
+            {"role": "system", "content": "You are a helpful assistant."},
+            {"role": "user", "content": prompt}
+        ],
+        max_tokens=100
+    )
+    
+    return response['choices'][0]['message']['content'].strip()
 
 def call_external_negotiation_api(user_offer, current_price):
     """Call an external API for additional negotiation logic."""
@@ -48,14 +46,12 @@ def call_external_negotiation_api(user_offer, current_price):
         "current_price": current_price
     }
     
-    try:
-        response = requests.post(api_url, json=payload)
-        if response.status_code == 200:
-            return response.json()
-        else:
-            return {"message": "Error in negotiating with external service."}
-    except Exception as e:
-        return {"message": f"External API call failed: {str(e)}"}
+    response = requests.post(api_url, json=payload)
+    
+    if response.status_code == 200:
+        return response.json()
+    else:
+        return {"message": "Error in negotiating with external service."}
 
 def handle_negotiation(user_offer, user_message, current_price, user_id):
     """Handle negotiation logic and determine response based on user offer and sentiment."""
